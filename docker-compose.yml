@@ -1,0 +1,8 @@
+version: "3"
+
+services:
+  proxy:
+    image: dperson/torproxy
+    ports:
+      - 8118:8118
+      - 9050:9050
