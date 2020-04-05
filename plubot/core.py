@@ -1,16 +1,12 @@
 import logging
 from uuid import uuid4
 
-import pluggy
-from telegram import Update, InlineQueryResultArticle, InputTextMessageContent, InputMessageContent
+from telegram import Update, InlineQueryResultArticle, InputTextMessageContent
 from telegram.ext import Updater, CallbackContext, InlineQueryHandler
-from telegram.utils.helpers import escape_markdown
 
-from plubot import config, plugins
-
+from plubot import config
 # Enable logging
 from plubot.plugin_manager import get_plugin_manager
-from plubot.plugins import hookspec
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
