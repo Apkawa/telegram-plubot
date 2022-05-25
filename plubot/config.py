@@ -1,16 +1,30 @@
-import sys
+from importlib import import_module
+from types import ModuleType
+from typing import Optional, List, Dict
 
 import pluggy
 
-TOKEN = '972195986:AAEFhkerwp8HmNDP-XlSNUcPrKG-eX37Oa4'
-REQUEST_KWARGS = {
-    # "USERNAME:PASSWORD@" is optional, if you need authentication:
-    'proxy_url': 'http://localhost:8118/',
-}
 
-# Plugins
-hookspec = pluggy.HookspecMarker("plubot")
-hookimpl = pluggy.HookimplMarker("plubot")
+class Config:
+    token: str
+    proxy: Optional[str]
+    module: ModuleType
+    plugins: List[str]
 
-sys.path.insert(0,
-                "/home/apkawa/code/python-meme-generator")
+    extra: Dict[str, any]
+
+    def load(self, base_module: ModuleType):
+        self.module = base_module
+        m = import_module(base_module.__name__ + '.conf')
+        conf_dict = {
+            i.lower(): v for i, v in m.__dict__.items() if
+            not i.startswith('_') and i.isupper()}
+
+        for n in ['token', 'proxy', 'plugins']:
+            setattr(self, n, conf_dict.pop(n))
+
+        self.extra = conf_dict
+
+
+config = Config()
+

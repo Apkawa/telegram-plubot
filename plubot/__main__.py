@@ -1,3 +1,4 @@
-from .core import main
+from plubot import cli
 
-main()
+if __name__ == '__main__':
+    cli.run()

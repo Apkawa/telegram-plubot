@@ -1,0 +1,24 @@
+-e .
+bump2version==1.0.1
+wheel
+tox
+twine
+
+# Tests
+pytest>=6,<7
+pytest-cov==2.12.1
+
+# Docs
+Sphinx>=4.0
+#alabaster
+sphinx_rtd_theme>=0.5.2
+recommonmark>=0.7.1
+m2r2
+sphinx-autodoc-typehints
+sphinx-paramlinks
+
+# QA
+pre-commit==2.13.0
+
+# Helpers
+ipython>=7,<8

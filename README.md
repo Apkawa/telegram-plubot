@@ -1,4 +1,14 @@
-# Plubot - a pluggable bot
+# Plubot - a pluggable bot helper library
+
+## Usage
+
+
+```bash
+pip install plubot
+
+plubot init example_bot # TODO
+plubot run example_bot # TODO
+```
 
 Feature plan
 

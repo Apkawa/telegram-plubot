@@ -13,7 +13,7 @@ from telegram import (
     InputTextMessageContent)
 from telegram.ext import CallbackContext
 
-from plubot.config import hookimpl
+from plubot.plugin.manager import hookimpl
 
 MEME_MAP = {
     'pooh': PoohMeme,
@@ -24,7 +24,7 @@ MEME_MAP = {
 
 def meme_handler(query, update: Update, context: CallbackContext):
     """
-    too | bar |nya | up to 10
+    foo | bar |nya | up to 10
     :param query:
     :return:
     """

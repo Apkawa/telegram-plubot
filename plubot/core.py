@@ -1,12 +1,15 @@
 import logging
-from uuid import uuid4
+import string
+from importlib import import_module
 
-from telegram import Update, InlineQueryResultArticle, InputTextMessageContent
-from telegram.ext import Updater, CallbackContext, InlineQueryHandler
+from telegram import Update, ParseMode
+from telegram.ext import Updater, CallbackContext, InlineQueryHandler, Dispatcher, CommandHandler
+from telegram.utils.helpers import escape_markdown
 
-from plubot import config
+from plubot.config import config
 # Enable logging
-from plubot.plugin_manager import get_plugin_manager
+from plubot.plugin.manager import get_plugin_manager
+from plubot.utils import import_from_path
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
@@ -24,46 +27,88 @@ def error(update, context):
 
 
 class PluBot:
-    def __init__(self, token: str):
-        plugin_manager = get_plugin_manager()
-        self.hook = plugin_manager.hook
-        self.token = token
+    def __init__(self, path: str):
+        self.plugin_manager = get_plugin_manager()
+        self._load(path)
+        self.hook = self.plugin_manager.hook
+        self.token = config.token
+
+    def _load(self, path: str):
+        module = import_from_path(path)
+        config.load(module)
+        self._load_plugins()
+
+    def _load_plugins(self):
+        for p in config.plugins:
+            self._load_plugin(p)
+
+    def _load_plugin(self, plugin_name: str):
+        if '.' not in plugin_name:
+            # maybe relative
+            plugin_name = config.module.__name__ + '.plugins.' + plugin_name
+        p_m = import_module(plugin_name)
+        self.plugin_manager.register(p_m)
 
     def _inline_query(self, update: Update, context: CallbackContext):
-        cmd_map = {k: cb for k, cb in
-                   sorted(self.hook.inline_query_cmd_info(),
-                          key=lambda x: x[0])}
-
         query = update.inline_query.query.strip()
-        cmd, sub_query = (query.split(' ', 1) + ['', ''])[:2]
 
-        if cmd in cmd_map:
-            results = cmd_map[cmd](sub_query, update, context)
-        else:
-            results = [
-                InlineQueryResultArticle(
-                    id=uuid4(),
-                    title=c,
-                    description=cb.__doc__,
-                    input_message_content=InputTextMessageContent(c),
-                )
-                for c, cb in cmd_map.items()]
+        hook_results = self.hook.inline_query(query=query, update=update, context=context)
+
+        results = []
+        for r in hook_results:
+            if not r:
+                continue
+            if isinstance(r, list):
+                results.extend(r)
 
         if results:
             update.inline_query.answer(results)
+
+    def _init_commands(self, dp: Dispatcher):
+        commands = self.hook.commands()
+        flatten_commands = {}
+        for c in commands:
+            for name, cb in c.items():
+                if name not in flatten_commands:
+                    flatten_commands[name] = cb
+                else:
+                    raise ValueError(f'{name} already exists!')
+
+        def start_handler(update: Update, context: CallbackContext):
+            update.message.reply_text("Hi! Use /help command for instructions")
+
+        def help_handler(update: Update, context: CallbackContext):
+            help_text = '\n'.join(['\n'.join(map(str.strip, h.splitlines())) for h in
+                                   self.hook.help(update=update, context=context) if h])
+
+            update.message.reply_text(
+                escape_markdown(help_text, version=2),
+                parse_mode=ParseMode.MARKDOWN_V2,
+                disable_web_page_preview=True,
+            )
+
+        dp.add_handler(CommandHandler('start', start_handler))
+        dp.add_handler(CommandHandler('help', help_handler))
+
+        for name, cb in flatten_commands.items():
+            if isinstance(cb, CommandHandler):
+                dp.add_handler(cb)
+            else:
+                dp.add_handler(CommandHandler(name, cb, pass_args=True, allow_edited=False))
 
     def init(self):
         # Create the Updater and pass it your bot's token.
         updater = Updater(
             self.token,
             use_context=True,
-            request_kwargs=config.REQUEST_KWARGS
+            request_kwargs={'proxy_url': config.proxy}
         )
 
         # Get the dispatcher to register handlers
         dp = updater.dispatcher
 
         dp.add_handler(InlineQueryHandler(self._inline_query))
+        self._init_commands(dp)
         self.hook.prepare_bot(dp=dp)
 
         # log all errors
@@ -78,6 +123,6 @@ class PluBot:
         updater.idle()
 
 
-def main():
-    p = PluBot(token=config.TOKEN)
+def main(path: str):
+    p = PluBot(path=path)
     p.init()

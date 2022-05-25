@@ -3,7 +3,7 @@ import logging
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Dispatcher, CommandHandler, CallbackQueryHandler, ConversationHandler
 
-from plubot.config import hookimpl
+from plubot.plugin import hookimpl
 
 logger = logging.getLogger(__name__)
 

@@ -1,12 +1,11 @@
 import pluggy
-
-from plubot.plugins import hookspec, plugins
+from . import hook_specs
 
 
 def get_plugin_manager():
     pm = pluggy.PluginManager("plubot")
-    pm.add_hookspecs(hookspec)
+    pm.add_hookspecs(hook_specs)
     pm.load_setuptools_entrypoints("plubot")
-    for p in plugins:
-        pm.register(p)
     return pm
+
+
