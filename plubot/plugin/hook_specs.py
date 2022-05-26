@@ -9,27 +9,40 @@ hookspec = pluggy.HookspecMarker("plubot")
 
 @hookspec
 def prepare_bot(dp: Dispatcher):
+    """
+    A low level bot preparation
+
+    https://docs.python-telegram-bot.org/en/v13.11/telegram.ext.dispatcher.html
+    """
     pass
 
 
 @hookspec
-def inline_query(query: str, update: Update,
-                 context: CallbackContext) -> hook_types.HookInlineQueryReturnType:
-    '''
+def inline_query(
+    query: str, update: Update, context: CallbackContext
+) -> hook_types.HookInlineQueryReturnType:
+    """
     No use update.inline_query.answer!
-    '''
+    """
 
 
 @hookspec
 def commands() -> hook_types.HookCommandsReturnType:
-    '''
-
-    '''
+    pass
 
 
 @hookspec
-def help(update: Update,
-         context: CallbackContext) -> hook_types.HookCommandsReturnType:
-    '''
+def commands_help(
+    update: Update, context: CallbackContext
+) -> hook_types.HookCommandsReturnType:
+    pass
 
-    '''
+
+@hookspec
+def chat_data_class() -> hook_types.HookChatDataClassReturnType:
+    pass
+
+
+@hookspec
+def context_class() -> hook_types.HookChatDataClassReturnType:
+    pass

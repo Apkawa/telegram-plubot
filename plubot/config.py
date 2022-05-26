@@ -1,8 +1,7 @@
-from importlib import import_module
 from types import ModuleType
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Any
 
-import pluggy
+from importlib import import_module
 
 
 class Config:
@@ -11,20 +10,21 @@ class Config:
     module: ModuleType
     plugins: List[str]
 
-    extra: Dict[str, any]
+    extra: Dict[str, Any]
 
     def load(self, base_module: ModuleType):
         self.module = base_module
-        m = import_module(base_module.__name__ + '.conf')
+        m = import_module(base_module.__name__ + ".conf")
         conf_dict = {
-            i.lower(): v for i, v in m.__dict__.items() if
-            not i.startswith('_') and i.isupper()}
+            i.lower(): v
+            for i, v in m.__dict__.items()
+            if not i.startswith("_") and i.isupper()
+        }
 
-        for n in ['token', 'proxy', 'plugins']:
+        for n in ["token", "proxy", "plugins"]:
             setattr(self, n, conf_dict.pop(n))
 
         self.extra = conf_dict
 
 
 config = Config()
-

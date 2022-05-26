@@ -1,12 +1,26 @@
-from typing import Union, List, Dict, Callable
+from typing import Union, List, Dict, Callable, Type, Optional, TypeVar
+from typing_extensions import TypeAlias
 
 from telegram import InlineQueryResult, Update
-from telegram.ext import CallbackContext, CommandHandler
+from telegram.ext import CallbackContext, Handler
 
-HookInlineQueryReturnType = Union[None, str, List[InlineQueryResult]]
+InlineQueryResultType = TypeVar('InlineQueryResultType', bound=InlineQueryResult)
 
-GenericHandlerCallback = Callable[[Update, CallbackContext], None]
+HookInlineQueryReturnType: TypeAlias = Optional[Union[str, List[InlineQueryResultType]]]
 
-HookCommandsReturnType = Dict[str, Union[GenericHandlerCallback, CommandHandler]]
+GenericHandlerCallback: TypeAlias = Callable[[Update, CallbackContext], None]
 
-HookHelpReturnType = Union[str, None]
+HookCommandsReturnType: TypeAlias = Dict[
+    str,
+    Union[
+        GenericHandlerCallback, Handler, List[Union[GenericHandlerCallback, Handler]]
+    ],
+]
+
+HookCommandsHelpReturnType: TypeAlias = Union[str, None]
+
+HookChatDataClassReturnType: TypeAlias = Optional[Type]
+
+HootContextClassReturnType: TypeAlias = Optional[
+    Type[CallbackContext[dict, Type, dict]]
+]

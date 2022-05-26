@@ -10,6 +10,7 @@ plubot init example_bot # TODO
 plubot run example_bot # TODO
 ```
 
+
 Feature plan
 
 * Some plugins
@@ -35,3 +36,9 @@ Feature plan
 
 * cli
     * click
+
+
+# Useful docs
+
+* https://docs.python-telegram-bot.org/en/v13.11/
+* [python-telegram-bot examples](https://github.com/python-telegram-bot/python-telegram-bot/tree/v13.11/examples)

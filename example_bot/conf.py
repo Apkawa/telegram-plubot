@@ -1,10 +1,12 @@
 import os
 
-TOKEN = os.environ.get('TOKEN')
+TOKEN = os.environ.get("TOKEN")
 
 PROXY = None
 
 PLUGINS = [
-    'example',
-    'inlinequery',
+    "example",
+    # 'inlinequery',
+    "cocksize",
 ]
+
