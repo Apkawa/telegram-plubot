@@ -1,6 +1,8 @@
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update, \
+    BotCommandScopeAllPrivateChats
 from telegram.ext import CallbackContext, CallbackQueryHandler
 
+from plubot.bot_command import BotCommandInfo
 from plubot.plugin import hookimpl, hook_types
 
 keyboard = [
@@ -18,7 +20,8 @@ def button_cmd(update: Update, context: CallbackContext):
     foo is foo command
     """
 
-    update.effective_message and update.effective_message.reply_text("Current number: 0", reply_markup=reply_markup)
+    update.effective_message and update.effective_message.reply_text("Current number: 0",
+                                                                     reply_markup=reply_markup)
 
 
 def button_handler(update: Update, context: CallbackContext):
@@ -57,3 +60,11 @@ def commands_help(
     return """
     /button - example inline keyboard
     """
+
+
+@hookimpl
+def commands_info() -> hook_types.HookCommandsInfoReturnType:
+    return [
+        BotCommandInfo('/button', 'example inline keyboard',
+                       scope=BotCommandScopeAllPrivateChats())
+    ]

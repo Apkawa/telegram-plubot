@@ -1,9 +1,16 @@
 import logging
 import types
 from importlib import import_module
-from typing import Union
+from typing import Union, Optional
 
-from telegram import Update, ParseMode
+from telegram import (
+    Update, ParseMode,
+    BotCommand,
+    BotCommandScopeDefault,
+    BotCommandScopeAllGroupChats,
+    BotCommandScopeAllPrivateChats,
+    BotCommandScopeAllChatAdministrators,
+)
 from telegram.ext import (
     Updater,
     CallbackContext,
@@ -15,6 +22,8 @@ from telegram.ext import (
 )
 from telegram.utils.helpers import escape_markdown
 
+from plubot import builtin_plugins
+from plubot.bot_command import group_bot_command_info, BotCommandInfo
 from plubot.config import config
 
 # Enable logging
@@ -48,6 +57,7 @@ class PluBot:
         module = import_from_path(path)
         config.load(module)
         self._load_plugins(config.plugins)
+        self._load_plugin(builtin_plugins)
 
     def _load_plugins(self, plugins):
         for p in plugins:
@@ -83,11 +93,15 @@ class PluBot:
                 results.extend(r)
 
         if results:
-            update.inline_query.answer(results)
+            update.inline_query.answer(
+                results,
+                cache_time=0,
+            )
 
     def _init_commands(self, dp: Dispatcher):
         commands = self.hook.commands()
         flatten_commands = {}
+
         for c in commands:
             for name, cb_list in c.items():
                 if name not in flatten_commands:
@@ -103,7 +117,7 @@ class PluBot:
         def help_handler(update: Update, context: CallbackContext):
             help_text = "\n".join(
                 [
-                    "\n".join(map(str.strip, h.strip().splitlines()))
+                    "\n".join(filter(None, map(str.strip, h.strip().splitlines())))
                     for h in self.hook.commands_help(update=update, context=context)
                     if h
                 ]
@@ -129,20 +143,40 @@ class PluBot:
                         CommandHandler(name, c, pass_args=True, allow_edited=False)
                     )
 
+    def _init_commands_button(self, dp: Dispatcher):
+        """
+        https://core.telegram.org/bots/api#determining-list-of-commands
+        """
+        # Cleanup old commands
+        default_scopes = [
+            BotCommandScopeDefault(),
+            BotCommandScopeAllPrivateChats(),
+            BotCommandScopeAllGroupChats(),
+            BotCommandScopeAllChatAdministrators(),
+        ]
+        for scope in default_scopes:
+            for lang in [None, 'ru', 'en']:
+                dp.bot.delete_my_commands(scope=scope, language_code=lang)
+        commands_info = [[
+            BotCommandInfo('help', 'Help', scope=default_scopes),
+            BotCommandInfo('help', 'Справка', language_code='ru', scope=default_scopes)
+        ]]
+        extra_commands_info = self.hook.commands_info()
+        if extra_commands_info:
+            commands_info.extend(extra_commands_info)
+        groups_commands = group_bot_command_info(commands_info)
+        for g in groups_commands:
+            dp.bot.set_my_commands(**g)
+
     def _build_context_types(self) -> ContextTypes:
         kw = {}
 
-        chat_data_class_list = self.hook.chat_data_class()
-        if chat_data_class_list:
-            # TODO test shadow
-            chat_data_cls = type("CustomChatData", tuple(chat_data_class_list), {})
-            kw["chat_data"] = chat_data_cls
-
-        context_class_list = self.hook.context_class()
-        if context_class_list:
-            # TODO test shadow
-            context_cls = type("CustomContext", tuple(context_class_list), {})
-            kw["context"] = context_cls
+        for k in ['bot_data', 'chat_data', 'user_data', 'context']:
+            class_list = getattr(self.hook, f'{k}_class')()
+            if class_list:
+                # TODO test shadow
+                cls = type(f"Custom{k.title().replace('_', '')}", tuple(class_list), {})
+                kw[k] = cls
 
         return ContextTypes(**kw)
 
@@ -160,6 +194,7 @@ class PluBot:
 
         dp.add_handler(InlineQueryHandler(self._inline_query))
         self._init_commands(dp)
+        self._init_commands_button(dp)
         self.hook.prepare_bot(dp=dp)
 
         # log all errors

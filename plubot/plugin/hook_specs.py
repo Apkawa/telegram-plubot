@@ -32,6 +32,11 @@ def commands() -> hook_types.HookCommandsReturnType:
 
 
 @hookspec
+def commands_info() -> hook_types.HookCommandsInfoReturnType:
+    pass
+
+
+@hookspec
 def commands_help(
     update: Update, context: CallbackContext
 ) -> hook_types.HookCommandsReturnType:

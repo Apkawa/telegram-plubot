@@ -7,6 +7,5 @@ PROXY = None
 PLUGINS = [
     "example",
     # 'inlinequery',
-    "cocksize",
 ]
 

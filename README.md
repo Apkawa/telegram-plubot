@@ -42,3 +42,4 @@ Feature plan
 
 * https://docs.python-telegram-bot.org/en/v13.11/
 * [python-telegram-bot examples](https://github.com/python-telegram-bot/python-telegram-bot/tree/v13.11/examples)
+* https://pluggy.readthedocs.io/en/stable/

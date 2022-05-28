@@ -57,7 +57,8 @@ setup(
     },
     install_requires=[
         'pluggy>=0.13.1',
-        'python-telegram-bot>=12.5.1'
+        'python-telegram-bot>=12.5.1',
+        'typing-extensions',
     ],
     extras_require={},
     zip_safe=False,

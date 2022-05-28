@@ -28,6 +28,7 @@ class ChatData:
     # May use external store
 
     def __init__(self) -> None:
+        super().__init__()
         self.clicks_per_message: DefaultDict[int, int] = defaultdict(int)
 
 

@@ -1,12 +1,15 @@
-from telegram import Update
+from telegram import Update, BotCommandScopeAllPrivateChats, BotCommandScopeAllChatAdministrators
 from telegram.ext import Dispatcher, CallbackContext, CommandHandler
 
+from plubot.bot_command import BotCommandInfo
 from plubot.plugin import hook_types, hookimpl
 
 from . import simple_inlinekeyboard, context_types
 
 # Plugins decomposition
 PLUGINS = [simple_inlinekeyboard, context_types]
+
+
 # More examples
 # https://github.com/python-telegram-bot/python-telegram-bot/tree/v13.11/examples
 
@@ -50,6 +53,25 @@ def commands() -> hook_types.HookCommandsReturnType:
         "foo": foo_cmd,
         "bar": CommandHandler("bar", bar_cmd, pass_args=True),
     }
+
+
+@hookimpl
+def commands_info() -> hook_types.HookCommandsInfoReturnType:
+    return [
+        ('foo', 'Foo command'),
+        BotCommandInfo('foo', 'Команда Фу!', language_code='ru'),
+        BotCommandInfo('bar', 'Го в бар', language_code='ru',
+                       scope=[
+                           BotCommandScopeAllPrivateChats(),
+                           BotCommandScopeAllChatAdministrators()
+                       ]),
+        BotCommandInfo('bar', 'Go fucking bar!', language_code=None,
+                       scope=[
+                           BotCommandScopeAllPrivateChats(),
+                           BotCommandScopeAllChatAdministrators()
+                       ]
+                       ),
+    ]
 
 
 @hookimpl
