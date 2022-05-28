@@ -12,6 +12,9 @@ class Config:
 
     extra: Dict[str, Any]
 
+    def __init__(self):
+        self.extra = {}
+
     def load(self, base_module: ModuleType):
         self.module = base_module
         m = import_module(base_module.__name__ + ".conf")
@@ -25,6 +28,15 @@ class Config:
             setattr(self, n, conf_dict.pop(n))
 
         self.extra = conf_dict
+
+    def __getattr__(self, item):
+        try:
+            return object.__getattribute__(self, item)
+        except AttributeError:
+            try:
+                return object.__getattribute__(self, 'extra')[item]
+            except KeyError:
+                raise AttributeError(item)
 
 
 config = Config()

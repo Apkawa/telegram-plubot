@@ -44,7 +44,17 @@ def commands_help(
 
 
 @hookspec
+def bot_data_class() -> hook_types.HookChatDataClassReturnType:
+    pass
+
+
+@hookspec
 def chat_data_class() -> hook_types.HookChatDataClassReturnType:
+    pass
+
+
+@hookspec
+def user_data_class() -> hook_types.HookChatDataClassReturnType:
     pass
 
 

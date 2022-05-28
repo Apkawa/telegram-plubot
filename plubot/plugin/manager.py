@@ -7,5 +7,3 @@ def get_plugin_manager():
     pm.add_hookspecs(hook_specs)
     pm.load_setuptools_entrypoints("plubot")
     return pm
-
-
