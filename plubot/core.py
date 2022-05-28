@@ -43,7 +43,7 @@ logger = logging.getLogger(__name__)
 
 def error(update, context):
     """Log Errors caused by Updates."""
-    logger.warning('Update "%s" caused error "%s"', update, context.error)
+    logger.exception('Update "%s" caused error "%s"', update, context.error)
 
 
 class PluBot:
@@ -140,7 +140,7 @@ class PluBot:
                     dp.add_handler(c)
                 else:
                     dp.add_handler(
-                        CommandHandler(name, c, pass_args=True, allow_edited=False)
+                        CommandHandler(name, c, pass_args=True, allow_edited=True)
                     )
 
     def _init_commands_button(self, dp: Dispatcher):
