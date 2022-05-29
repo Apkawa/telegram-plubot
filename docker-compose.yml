@@ -6,3 +6,8 @@ services:
     ports:
       - 8118:8118
       - 9050:9050
+
+  redis:
+    image: redis:6-alpine
+    ports:
+      - 16379:6379

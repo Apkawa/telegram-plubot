@@ -1,12 +1,16 @@
-
-
 class StorageBackendBase:
     __not_given = object()
 
     store_cls = dict
 
     def __init__(self):
-        self._store = self.store_cls()
+        self._store = self._get_store()
+
+    def _get_store(self):
+        return self.store_cls()
+
+    def sub_store(self, namespace):
+        return self._store.setdefault(namespace, self._get_store())
 
     def __contains__(self, key):
         return key in self._store
@@ -63,4 +67,3 @@ class StorageBackendBase:
         # internals directly (loading data wastes time, since we are going to
         # set it to an empty dict anyway).
         self._store = {}
-

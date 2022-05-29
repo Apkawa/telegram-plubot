@@ -23,8 +23,12 @@ class WithContext:
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
 
+    @property
+    def chat_id(self):
+        return self.__update.effective_message.chat_id
+
     def _get_store(self) -> Dict[str, Union[Message, List[Message]]]:
-        store = self.__context.chat_data.store.setdefault('message_reply', {})
+        store = self.__context.chat_data.store.sub_store('message_reply')
         return store
 
     _store = property(_get_store)
@@ -36,13 +40,23 @@ class WithContext:
     def _get_bot_message(self, prefix: Optional[str] = None) -> Optional[
         Union[Message, List[Message]]
     ]:
-        return self._store.get(self._get_store_key(prefix))
+
+        s_msg = self._store.get(self._get_store_key(prefix))
+        if not s_msg:
+            return None
+        elif isinstance(s_msg, list):
+            return [Message(**m) for m in s_msg]
+        elif isinstance(s_msg, dict):
+            return Message(**s_msg)
 
     def _set_bot_message(self,
                          message: Union[Message, List[Message]],
                          prefix: Optional[str] = None) -> None:
-
-        self._store[self._get_store_key(prefix)] = message
+        if isinstance(message, list):
+            s_msg = [m.to_dict() for m in message]
+        else:
+            s_msg = message.to_dict()
+        self._store[self._get_store_key(prefix)] = s_msg
 
     def reply_or_edit_text(self,
                            text: str,
@@ -76,8 +90,8 @@ class WithContext:
             return reply_message
         else:
             return self.__context.bot.edit_message_text(
-                chat_id=bot_message.chat_id,
-                message_id=bot_message,
+                chat_id=self.chat_id,
+                message_id=bot_message.message_id,
                 **common_kw
             )
 
@@ -120,7 +134,7 @@ class WithContext:
                 filename=filename
             )
             return self.__context.bot.edit_message_media(
-                chat_id=bot_message.chat_id,
+                chat_id=self.chat_id,
                 message_id=bot_message.message_id,
                 media=media,
                 reply_markup=reply_markup,
@@ -173,7 +187,7 @@ class WithContext:
                 **common_kw
             )
             return self.__context.bot.edit_message_media(
-                chat_id=bot_message.chat_id,
+                chat_id=self.chat_id,
                 message_id=bot_message.message_id,
                 media=media,
                 reply_markup=reply_markup,
@@ -215,7 +229,7 @@ class WithContext:
             bot = self.__context.bot
             if title_message.caption != caption:
                 bot.edit_message_caption(
-                    chat_id=title_message.chat_id,
+                    chat_id=self.chat_id,
                     message_id=title_message.message_id,
                     caption=caption,
                     parse_mode=parse_mode,

@@ -1,6 +1,8 @@
 import logging
+import sys
 import types
 from importlib import import_module
+from pathlib import Path
 from typing import Union, Optional
 
 from telegram import (
@@ -54,6 +56,7 @@ class PluBot:
         self.token = config.token
 
     def _load(self, path: str):
+        sys.path.append(str(Path(path).absolute().parent))
         module = import_from_path(path)
         config.load(module)
         self._load_plugins(config.plugins)
@@ -122,12 +125,12 @@ class PluBot:
                     if h
                 ]
             )
-
-            update.message and update.message.reply_text(
-                escape_markdown(help_text, version=2),
-                parse_mode=ParseMode.MARKDOWN_V2,
-                disable_web_page_preview=True,
-            )
+            if update.message and help_text:
+                update.message.reply_text(
+                    escape_markdown(help_text, version=2),
+                    parse_mode=ParseMode.MARKDOWN_V2,
+                    disable_web_page_preview=True,
+                )
 
         dp.add_handler(CommandHandler("start", start_handler, allow_edited=False))
         dp.add_handler(CommandHandler("help", help_handler, allow_edited=False))

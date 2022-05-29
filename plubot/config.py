@@ -1,7 +1,10 @@
+from pathlib import Path
 from types import ModuleType
 from typing import Optional, List, Dict, Any
 
 from importlib import import_module
+
+from plubot.utils import import_from_path
 
 
 class Config:
@@ -28,6 +31,12 @@ class Config:
             setattr(self, n, conf_dict.pop(n))
 
         self.extra = conf_dict
+
+    def get(self, key, default=None):
+        return self.extra.get(key, default)
+
+    def set(self, key, value):
+        self.extra[key] = value
 
     def __getattr__(self, item):
         try:
