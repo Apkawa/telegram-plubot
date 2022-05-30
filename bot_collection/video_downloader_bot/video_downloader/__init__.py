@@ -138,11 +138,13 @@ def inline_query(
         if filepath:
             conv.delete(filepath)
             conv.delete(conv_filepath)
-
+        title = "Video"
+        if caption_parts:
+            title = " ".join(caption_parts)
         i_q = InlineQueryResultCachedVideo(
             id=gen_id(),
             video_file_id=link.file_id,
-            title=" ".join(caption_parts),
+            title=title,
             caption=" ".join(caption_parts),
 
         )
