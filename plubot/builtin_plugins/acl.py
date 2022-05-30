@@ -1,6 +1,7 @@
 # The [dict, ChatData, dict] is for type checkers like mypy
 import functools
-import typing
+from typing import Optional, cast, Callable
+from typing_extensions import TypeAlias
 
 from telegram import Update, Message, User
 from telegram.ext import CallbackContext, Dispatcher
@@ -15,8 +16,8 @@ class ACLContext(CallbackContext):
 
     def __init__(self, dispatcher: Dispatcher):
         super().__init__(dispatcher=dispatcher)
-        self._message: typing.Optional[Message] = None
-        self._user: typing.Optional[User] = None
+        self._message: Optional[Message] = None
+        self._user: Optional[User] = None
 
     @property
     def user_is_admin(self) -> bool:
@@ -25,7 +26,7 @@ class ACLContext(CallbackContext):
 
     @classmethod
     def from_update(cls, update: object, dispatcher: "Dispatcher") -> "ACLContext":
-        context = typing.cast(ACLContext, super().from_update(update, dispatcher))
+        context = cast(ACLContext, super().from_update(update, dispatcher))
 
         if isinstance(update, Update) and update.effective_user:
             context._user = update.effective_user
@@ -36,13 +37,22 @@ class ACLContext(CallbackContext):
         return context
 
 
-def allow_admin(func):
-    @functools.wraps(func)
-    def _wrap(update: Update, context: ACLContext) -> None:
-        if context.user_is_admin:
-            func(update, context)
+TFunc: TypeAlias = Callable[[Update, ACLContext], None]
 
-    return _wrap
+
+def check_permission(check_cb: Callable[[Update, ACLContext], None]) -> Callable[[TFunc], TFunc]:
+    def decorator(func: TFunc) -> TFunc:
+        @functools.wraps(func)
+        def _wrap(update: Update, context: ACLContext) -> None:
+            if check_cb(update, context):
+                return func(update, context)
+
+        return _wrap
+
+    return decorator
+
+
+allow_admin = check_permission(lambda u, cb: cb.user_is_admin)
 
 
 @hookimpl

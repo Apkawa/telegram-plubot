@@ -39,7 +39,7 @@ def commands_info() -> hook_types.HookCommandsInfoReturnType:
 @hookspec
 def commands_help(
     update: Update, context: CallbackContext
-) -> hook_types.HookCommandsReturnType:
+) -> hook_types.HookCommandsHelpReturnType:
     pass
 
 

@@ -126,7 +126,6 @@ class WithContext:
             self._set_bot_message(reply_message, prefix)
             return reply_message
         else:
-            photo = parse_file_input(photo, PhotoSize, filename=filename)
             media = InputMediaPhoto(
                 media=photo,
                 caption=caption,
