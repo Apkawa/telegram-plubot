@@ -1,7 +1,4 @@
 import os.path
-from typing import Optional, Union, List
-
-from telegram.utils.types import FileInput
 
 from ._base import BaseSiteHandler, VideoLinkResultType
 

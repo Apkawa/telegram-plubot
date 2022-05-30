@@ -4,11 +4,10 @@ from hashlib import sha1
 from telegram import (
     Update, ChatAction, Video,
     InlineQueryResultCachedVideo,
-    InlineQueryResultVideo, Animation
+    Animation
 )
 from telegram.ext import CallbackContext, MessageHandler, Filters
 
-from plubot.helpers import WithContext
 from plubot.plugin import hookimpl, hook_types
 from plubot.utils import gen_id
 from .converter import Converter
@@ -30,7 +29,8 @@ def handle_links(update: Update, context: CallbackContext) -> None:
     filepath = None
 
     message = update.effective_message
-    for i, link in enumerate(video_links):
+    for i, video_result in enumerate(video_links):
+        link = video_result.video
         if not link:
             continue
         context.bot.send_chat_action(
@@ -57,6 +57,7 @@ def handle_links(update: Update, context: CallbackContext) -> None:
 
         reply = update.message.reply_video(
             link,
+            filename="@yet_video_downloader" + video_result.name,
             reply_to_message_id=update.message.message_id
         )
 
@@ -84,7 +85,8 @@ def inline_query(
     query: str, update: Update, context: CallbackContext
 ) -> hook_types.HookInlineQueryReturnType:
 
-    raw_links = extract_links(query)
+    links, *caption_parts = query.split("|")
+    raw_links = extract_links(links)
     video_links = extract_video_from_links(raw_links)
 
     cache = context.bot_data.store.sub_store("video_cache")
@@ -94,16 +96,18 @@ def inline_query(
     )
     results = []
 
-    for i, link in enumerate(video_links):
-        filepath = conv_filepath = cached_link = link_hash = None
+    for i, video_result in enumerate(video_links):
+        filepath = conv_filepath = cached_video = link_hash = None
+
+        link = video_result.video
         if not link:
             continue
         if isinstance(link, str):
             # Other links must be already converted
             link_hash = sha1(link.encode("utf-8")).hexdigest()
-            cached_link = cache.get(link_hash)
-            if cached_link:
-                link = Video(**cached_link)
+            cached_video = cache.get(link_hash)
+            if cached_video:
+                link = Video(**cached_video)
             else:
                 ext = os.path.splitext(link)[-1]
 
@@ -118,11 +122,13 @@ def inline_query(
                     link = resp.video
                     resp.delete()
 
-        if not cached_link:
+        if not cached_video:
             resp = context.bot.send_video(
-                chat_id=update.effective_user.id,
                 video=link,
+                filename="@yet_video_downloader" + video_result.name,
+                chat_id=update.effective_user.id,
                 disable_notification=True,
+
             )
             link = resp.video or resp.animation
             if link_hash and isinstance(link, (Video, Animation)):
@@ -136,7 +142,9 @@ def inline_query(
         i_q = InlineQueryResultCachedVideo(
             id=gen_id(),
             video_file_id=link.file_id,
-            title='Video',
+            title=" ".join(caption_parts),
+            caption=" ".join(caption_parts),
+
         )
         results.append(i_q)
 

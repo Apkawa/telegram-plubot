@@ -1,17 +1,19 @@
 import os.path
-from typing import List, TYPE_CHECKING, Type, Optional
+from typing import List, TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from ._base import BaseSiteHandler, VideoLinkResultType
 
-from telegram.utils.types import FileInput
-
 
 def get_handlers() -> List['BaseSiteHandler']:
     from .pikabu import PikabuHandler
+    from .twitter import TwitterHandler
+    from .coub import CoubHandler
 
     handler_classes = [
-        PikabuHandler
+        PikabuHandler,
+        TwitterHandler,
+        CoubHandler,
     ]
 
     return [h() for h in handler_classes]

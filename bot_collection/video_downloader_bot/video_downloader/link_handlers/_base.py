@@ -16,11 +16,13 @@ class BaseSiteHandler:
     def parse_link(self, link: str) -> urllib.parse.ParseResult:
         return urllib.parse.urlparse(link)
 
-    def fetch_link(self, link: str) -> HTMLResponse:
+    def fetch_link(self, link: str, req_kw=None) -> HTMLResponse:
         session = HTMLSession()
-        response = session.get(link, headers={
+        kw = dict(headers={
             "User-Agent": USER_AGENT
         })
+        kw.update(req_kw or {})
+        response = session.get(link, **kw)
         return response
 
     def is_valid(self, link: str) -> bool:
