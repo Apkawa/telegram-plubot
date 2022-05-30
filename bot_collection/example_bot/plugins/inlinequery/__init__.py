@@ -60,7 +60,7 @@ def inline_query_other_cmd(
                 id=gen_id(),
                 title=name,
                 hide_url=True,
-                description=commands[name],
+                description=commands[name] + extra_query,
                 input_message_content=InputTextMessageContent(
                     commands[name] + extra_query
                 ),
