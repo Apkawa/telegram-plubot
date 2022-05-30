@@ -30,7 +30,7 @@ from plubot.config import config
 
 # Enable logging
 from plubot.plugin.manager import get_plugin_manager
-from plubot.utils import import_from_path
+from plubot.utils import import_from_path, remove_jobs
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
@@ -82,24 +82,34 @@ class PluBot:
     def _inline_query(self, update: Update, context: CallbackContext):
         if not update.inline_query:
             return
-        query = update.inline_query.query.strip()
+        name = f'__inline_query_{update.effective_user.id}'
+        remove_jobs(name, context)
+        _update = update
+        _context = context
 
-        hook_results = self.hook.inline_query(
-            query=query, update=update, context=context
-        )
+        def _query_cb(context: CallbackContext):
+            remove_jobs(name, context)
+            query = _update.inline_query.query.strip()
 
-        results = []
-        for r in hook_results:
-            if not r:
-                continue
-            if isinstance(r, list):
-                results.extend(r)
-
-        if results:
-            update.inline_query.answer(
-                results,
-                cache_time=0,
+            hook_results = self.hook.inline_query(
+                query=query, update=_update, context=_context
             )
+
+            results = []
+            for r in hook_results:
+                if not r:
+                    continue
+                if isinstance(r, list):
+                    results.extend(r)
+
+            if results:
+                _update.inline_query.answer(
+                    results,
+                    cache_time=0,
+                )
+
+        # keyboard typing filter
+        context.job_queue.run_once(_query_cb, when=1.0, name=name)
 
     def _init_commands(self, dp: Dispatcher):
         commands = self.hook.commands()

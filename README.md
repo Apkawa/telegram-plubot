@@ -6,8 +6,7 @@
 ```bash
 pip install plubot
 
-plubot init example_bot # TODO
-plubot run example_bot # TODO
+plubot run bot_collection/example_bot/
 ```
 
 
@@ -27,7 +26,7 @@ Feature plan
 * plugins
     * pluggy
     
-* multiservice communication api
+* multiservice communication api?
     * grpc
     
 * tests

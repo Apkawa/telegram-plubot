@@ -4,6 +4,8 @@ from importlib.util import spec_from_file_location, module_from_spec
 from pathlib import Path
 from uuid import uuid4
 
+from telegram.ext import CallbackContext
+
 
 def import_from_path(path: Union[str, Path]) -> ModuleType:
     path = Path(path)
@@ -23,3 +25,13 @@ def import_from_path(path: Union[str, Path]) -> ModuleType:
 
 def gen_id() -> str:
     return str(uuid4())
+
+
+def remove_jobs(name: str, context: CallbackContext) -> bool:
+    """Remove job with given name. Returns whether job was removed."""
+    current_jobs = context.job_queue.get_jobs_by_name(name)
+    if not current_jobs:
+        return False
+    for job in current_jobs:
+        job.schedule_removal()
+    return True

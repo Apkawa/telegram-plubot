@@ -60,7 +60,12 @@ setup(
         'python-telegram-bot>=12.5.1',
         'typing-extensions',
     ],
-    extras_require={},
+    extras_require={
+        'redis': [
+            'redis',
+            'redis-dict',
+        ]
+    },
     zip_safe=False,
     include_package_data=True,
     keywords=["telegram"],

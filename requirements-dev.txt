@@ -26,5 +26,3 @@ ipython>=7,<8
 
 requests-html
 
-redis
-redis-dict
