@@ -28,3 +28,4 @@ def get_video_from_link(link: str) -> Optional['VideoLinkResultType']:
     for h in get_handlers():
         if h.is_valid(link):
             return h.get_video(link)
+    return None
