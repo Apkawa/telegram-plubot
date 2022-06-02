@@ -2,10 +2,6 @@ import os
 
 from . import video_downloader
 
-TOKEN = os.environ.get("TOKEN")
-
-PROXY = None
-
 PLUGINS = [
     video_downloader
 ]

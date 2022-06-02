@@ -1,4 +1,6 @@
+import os
 import re
+from pathlib import Path
 from typing import List
 
 
@@ -11,3 +13,17 @@ def extract_links(text: str) -> List[str]:
 
     """
     return re.findall(r'(https?://\S+)', text)
+
+
+class CleanablePath(type(Path())):
+    def remove(self):
+        try:
+            os.remove(self)
+            return None
+        except IOError:
+            pass
+
+    def __del__(self):
+        self.remove()
+
+

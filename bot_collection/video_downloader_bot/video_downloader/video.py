@@ -2,6 +2,7 @@ import enum
 import os.path
 from collections import namedtuple
 from hashlib import sha1
+from pathlib import Path
 from typing import List, Optional, NamedTuple, Type, Union, Dict
 from unittest import mock
 
@@ -10,6 +11,7 @@ from telegram.utils.types import FileInput
 
 from . import Converter
 from .link_handlers import get_video_from_link
+from .utils import CleanablePath
 
 VideoType = Union[Video, FileInput]
 
@@ -65,15 +67,16 @@ def process_link(raw_link: str, cache: Dict[str, List[dict]]):
     cache_key = link_hash
     video_links = cache.get(link_hash)
     if video_links:
-        video_links = map_video_result(raw_link, [Video(**v) for v in video_links])
-    else:
+        video_links = map_video_result(raw_link, [
+            Video(**v) for v in video_links if 'duration' in v])
+
+    if not video_links:
         video_links = extract_video(raw_link)
 
     cached_video = []
     conv = Converter(workdir='/tmp/')
 
-    def _sub_gen(video_result: VideoLinkResult):
-        for_clean = []
+    def _generator(video_result: VideoLinkResult):
         link = video_result.video
         if not link:
             return
@@ -85,12 +88,11 @@ def process_link(raw_link: str, cache: Dict[str, List[dict]]):
             if ext in ['.webm']:
                 yield ProcessResult(ProcessState.CONVERT)
                 try:
-                    filepath = conv.fetch(link)
-                    mp4_filepath = conv.to_mp4(filepath)
+                    filepath = CleanablePath(conv.fetch(link))
+                    mp4_filepath = CleanablePath(conv.to_mp4(filepath))
                 except Exception as e:
                     yield ProcessResult(ProcessState.ERROR, error=e)
                     return
-                for_clean = [filepath, mp4_filepath]
                 link = open(mp4_filepath, 'rb')
                 video_result = VideoLinkResult(
                     url=video_result.url,
@@ -101,12 +103,10 @@ def process_link(raw_link: str, cache: Dict[str, List[dict]]):
         if video_file:
             cached_video.append(video_file.to_dict())
 
-        for f in for_clean:
-            conv.delete(f)
         yield ProcessResult(ProcessState.END)
 
     for video_result in video_links:
-        yield _sub_gen(video_result)
+        yield _generator(video_result)
 
     cache[cache_key] = cached_video
 
@@ -138,6 +138,34 @@ def test_process_fake_webm():
         ProcessState.DOWNLOAD,
         ProcessState.CONVERT,
         ProcessState.ERROR,
+    ]
+
+
+def test_process_webm():
+    cache = {}
+    gen = process_link("https://cs14.pikabu.ru/post_img/2022/05/28/8/1653742195136846338.webm",
+                       cache)
+    states = []
+    res = None
+    for v_gen in gen:
+        for g in v_gen:
+            states.append(g.state)
+            if g.state == ProcessState.READY:
+                res = g.result
+                # Must be store or use this file before cycle exit
+                v = Path(res.video.name)
+                assert v.exists()
+                v_gen.send(mock.Mock())
+    assert res
+    # Already cleanup temp files
+    v = Path(res.video.name)
+    assert not v.exists()
+
+    assert cache.keys()
+    assert states == [
+        ProcessState.DOWNLOAD,
+        ProcessState.CONVERT,
+        ProcessState.READY,
     ]
 
 

@@ -3,11 +3,14 @@ From https://github.com/shmulya/webmtogif/blob/dev/app/modules/converter.py
 """
 import os.path
 import subprocess
-import requests
-
-from typing import Optional, IO, Union
+from os import getcwd
 from pathlib import Path
-from os import getcwd, remove
+from typing import Optional, IO, Union
+
+import requests
+from typing_extensions import TypeAlias
+
+PathType: TypeAlias = Union[str, Path]
 
 
 class ConverterError(Exception):
@@ -24,7 +27,7 @@ class Converter:
         self.workdir = Path(workdir or getcwd())
         self.log = open(log_file or 'ffmpeg_error.log', 'a')
 
-    def fetch(self, url: str, name: Optional[str] = None) -> str:
+    def fetch(self, url: str, name: Optional[str] = None) -> Path:
         """
         Download source video from _url_
         :param name: filename
@@ -56,7 +59,7 @@ class Converter:
         file.close()
         return filepath
 
-    def to_gif(self, filepath: str) -> str:
+    def to_gif(self, filepath: PathType) -> str:
         """
         Convert source file to GIF
         :param filepath: source file path
@@ -74,7 +77,7 @@ class Converter:
             raise e
         return filename_gif
 
-    def to_mp4(self, filepath: str) -> str:
+    def to_mp4(self, filepath: PathType) -> str:
         """
         Convert source file to MP4
         :param filepath: source file path
@@ -90,17 +93,24 @@ class Converter:
             raise e
         return filename_mp4
 
-    def delete(self, path: Union[str, Path]) -> None:
-        """
-        Delete file path
-        :param path: file path
-        :return: None
-        """
-        remove(path)
-
 
 def test_convert_to_mp4():
     link = 'https://cs14.pikabu.ru/video/2022/05/26/1653597715219655492_480x460.webm'
+    c = Converter(
+        workdir='/tmp/',
+        log_file='/tmp/ffmpeg_error.log'
+    )
+    filepath = Path(c.fetch(link))
+    assert filepath.exists()
+    assert filepath.is_absolute()
+    mp4_filepath = Path(c.to_mp4(filepath))
+    assert mp4_filepath.exists()
+    assert mp4_filepath.is_absolute()
+
+
+def test_convert_large_file():
+    # Problem large file
+    link = 'https://cs14.pikabu.ru/video/2022/05/28/165373361028328730_720x1280.webm'
     c = Converter(
         workdir='/tmp/',
         log_file='/tmp/ffmpeg_error.log'
