@@ -10,11 +10,13 @@ def get_handlers() -> List['BaseSiteHandler']:
     from .twitter import TwitterHandler
     from .coub import CoubHandler
     from .vk import VkHandler
+    from .tiktok import TiktokHandler
 
     handler_classes = [
         PikabuHandler,
         TwitterHandler,
         CoubHandler,
+        TiktokHandler,
         # VkHandler
     ]
 
