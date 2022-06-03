@@ -26,6 +26,7 @@ ipython>=7,<8
 
 # video_downloader
 requests-html
+yt-dlp
 
 # Meme bot
 git+https://github.com/Apkawa/python-meme-generator.git
