@@ -11,6 +11,7 @@ def get_handlers() -> List['BaseSiteHandler']:
     from .coub import CoubHandler
     from .vk import VkHandler
     from .tiktok import TiktokHandler
+    from .yt_dlp import YtDLPHandler
 
     handler_classes = [
         PikabuHandler,
@@ -18,6 +19,7 @@ def get_handlers() -> List['BaseSiteHandler']:
         CoubHandler,
         TiktokHandler,
         # VkHandler
+        YtDLPHandler,
     ]
 
     return [h() for h in handler_classes]

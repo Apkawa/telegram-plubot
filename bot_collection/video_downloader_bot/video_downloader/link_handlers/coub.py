@@ -2,7 +2,6 @@
 curl https://vxtwitter.com/merci_bo/status/1530949541901500416 -H "User-Agent: TelegramBot (like TwitterBot)"
 """
 import json
-import os.path
 
 from ._base import BaseSiteHandler, VideoLinkResultType
 

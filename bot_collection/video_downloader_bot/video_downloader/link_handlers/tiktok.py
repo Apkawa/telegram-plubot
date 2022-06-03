@@ -48,5 +48,7 @@ class TiktokHandler(BaseSiteHandler):
 
 def test_handler():
     h = TiktokHandler()
-    links = h.get_video("https://www.tiktok.com/@strong_love/video/7071984494680493314")
+    url = "https://www.tiktok.com/@arbaleteminee/video/7104711273677327617"
+    assert h.is_valid(url)
+    links = h.get_video(url)
     assert links

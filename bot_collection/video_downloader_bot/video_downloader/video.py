@@ -22,12 +22,15 @@ class VideoLinkResult(NamedTuple):
     video: VideoType
 
 
-def map_video_result(link, video_links: List[VideoType]):
+def map_video_result(link: str, video_links: List[VideoType]):
     video_links = video_links or []
     if not isinstance(video_links, list):
         video_links = [video_links]
     for video_link in video_links:
-        name = os.path.split(link.split('?')[0])[-1]
+        path = link
+        if isinstance(video_link, str):
+            path = video_link
+        name = os.path.split(path.split('?')[0])[-1]
         yield VideoLinkResult(link, name, video_link)
 
 

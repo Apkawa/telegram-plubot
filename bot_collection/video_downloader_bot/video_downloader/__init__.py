@@ -39,6 +39,7 @@ def handle_links(update: Update, context: CallbackContext) -> None:
                 if process_result.state == ProcessState.CONVERT:
                     bot_message.edit_text("Converting video...")
                 if process_result.state == ProcessState.ERROR:
+                    context.bot.logger.exception(f"Process video error: {process_result.error}")
                     bot_message.edit_text(f"Process video error: {process_result.error}")
                 elif process_result.state == ProcessState.READY:
                     bot_message.edit_text("Uploading video...")
@@ -52,6 +53,7 @@ def handle_links(update: Update, context: CallbackContext) -> None:
                         gen_process.send(reply.effective_attachment)
                         bot_message.delete()
                     except Exception as e:
+                        context.bot.logger.exception(f"Process video error: {e}")
                         bot_message.edit_text(f"Process video error: {e}")
                         continue
 
